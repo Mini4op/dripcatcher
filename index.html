@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUXURY BOUTIQUE</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Все стили остаются такими же как в предыдущей версии */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --lv-brown: #8B4513;
+            --lv-gold: #C9A96E;
+            --lv-dark: #1A1A1A;
+            --lv-light: #FFFFFF;
+            --lv-cream: #F8F6F0;
+            --lv-border: #E8E8E8;
+            --lv-text: #333333;
+            --lv-shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--lv-light);
+            color: var(--lv-text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .luxury-app {
+            max-width: 100%;
+            margin: 0 auto;
+            background: var(--lv-light);
+            min-height: 100vh;
+        }
+
+        /* Все остальные стили остаются без изменений */
+        /* ... */
+
+    </style>
+</head>
+<body>
+    <div class="luxury-app">
+        <!-- Русский заголовок -->
+        <header class="lv-header">
+            <div class="header-pattern"></div>
+            <div class="brand-logo">LUXURY BOUTIQUE</div>
+            <div class="brand-subtitle">Премиум реплики 1:1</div>
+        </header>
+
+        <!-- Русская навигация -->
+        <nav class="lv-nav">
+            <div class="nav-item active">Новинки</div>
+            <div class="nav-item">Сумки</div>
+            <div class="nav-item">Одежда</div>
+            <div class="nav-item">Аксессуары</div>
+            <div class="nav-item">Обувь</div>
+        </nav>
+
+        <!-- Русский герой-секция -->
+        <section class="lv-hero">
+            <div class="hero-pattern"></div>
+            <div class="hero-content">
+                <h2>Новая Коллекция</h2>
+                <p>Точные реплики премиум-качества с доставкой по России</p>
+            </div>
+        </section>
+
+        <!-- Русские категории -->
+        <div class="category-nav">
+            <div class="category-tab active" onclick="filterByCategory('all')">Все товары</div>
+            <div class="category-tab" onclick="filterByCategory('bags')">Сумки</div>
+            <div class="category-tab" onclick="filterByCategory('clothing')">Одежда</div>
+            <div class="category-tab" onclick="filterByCategory('shoes')">Обувь</div>
+            <div class="category-tab" onclick="filterByCategory('accessories')">Аксессуары</div>
+        </div>
+
+        <!-- Русские товары -->
+        <section class="lv-products">
+            <h2 class="section-title">Популярные товары</h2>
+            
+            <div class="products-grid" id="productsGrid">
+                <div class="lv-loading">Загружаем коллекцию...</div>
+            </div>
+        </section>
+
+        <!-- Корзина -->
+        <div class="lv-cart-fab" onclick="toggleCart()">
+            🛍️
+            <div class="cart-badge" id="cartCount">0</div>
+        </div>
+
+        <!-- Модальное окно корзины на русском -->
+        <div id="cartModal" class="lv-modal">
+            <div class="lv-modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Ваша корзина</h3>
+                    <span class="modal-close" onclick="toggleCart()">&times;</span>
+                </div>
+                <div class="modal-body" id="cartItems">
+                    <div class="lv-loading">Корзина пуста</div>
+                </div>
+                <div class="luxury-divider"></div>
+                <div class="modal-footer">
+                    <div class="cart-total">Итого: <span id="cartTotal">0</span> руб.</div>
+                    <button class="lv-button" onclick="startCheckout()">Оформить заказ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно телефона на русском -->
+        <div id="phoneModal" class="lv-modal">
+            <div class="lv-modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Контактные данные</h3>
+                    <span class="modal-close" onclick="closePhoneModal()">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 24px;">
+                    <p style="text-align: center; margin-bottom: 20px; font-size: 14px; color: #666; line-height: 1.5;">
+                        Укажите ваш номер телефона для подтверждения заказа и связи
+                    </p>
+                    <input type="tel" class="phone-input" id="phoneInput" placeholder="+7 999 123-45-67" pattern="\+7\s?[0-9]{3}\s?[0-9]{3}\s?[0-9]{2}\s?[0-9]{2}">
+                    <button class="lv-button" onclick="completeOrder()">Подтвердить заказ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Данные магазина на русском с рублями
+        const shopData = {
+            categories: [
+                {id: 'all', name: 'Все товары'},
+                {id: 'bags', name: 'Сумки'},
+                {id: 'clothing', name: 'Одежда'},
+                {id: 'shoes', name: 'Обувь'},
+                {id: 'accessories', name: 'Аксессуары'}
+            ],
+            products: [
+                {
+                    id: '1',
+                    name: 'Louis Vuitton Neverfull',
+                    price: 14900,
+                    category: 'bags',
+                    emoji: '👜',
+                    sizes: ['PM', 'MM', 'GM'],
+                    description: 'Культовая сумка, точная реплика 1:1'
+                },
+                {
+                    id: '2', 
+                    name: 'Gucci Блейзер',
+                    price: 12900,
+                    category: 'clothing',
+                    emoji: '👔',
+                    sizes: ['44', '46', '48', '50', '52'],
+                    description: 'Премиальный блейзер из шерстяной ткани'
+                },
+                {
+                    id: '3',
+                    name: 'Dior Кроссовки',
+                    price: 11200,
+                    category: 'shoes', 
+                    emoji: '👟',
+                    sizes: ['39', '40', '41', '42', '43', '44'],
+                    description: 'Модные кроссовки, комфортная колодка'
+                },
+                {
+                    id: '4',
+                    name: 'Chanel Клатч',
+                    price: 8900,
+                    category: 'accessories',
+                    emoji: '👛',
+                    sizes: ['ONE SIZE'],
+                    description: 'Элегантный вечерний клатч'
+                },
+                {
+                    id: '5',
+                    name: 'Prada Рюкзак',
+                    price: 13600,
+                    category: 'bags',
+                    emoji: '🎒',
+                    sizes: ['ONE SIZE'],
+                    description: 'Стильный рюкзак из качественной кожи'
+                },
+                {
+                    id: '6',
+                    name: 'Balenciaga Футболка',
+                    price: 6800,
+                    category: 'clothing',
+                    emoji: '👕',
+                    sizes: ['S', 'M', 'L', 'XL'],
+                    description: 'Хлопковая футболка премиум-качества'
+                },
+                {
+                    id: '7',
+                    name: 'Hermès Браслет',
+                    price: 5400,
+                    category: 'accessories',
+                    emoji: '📿',
+                    sizes: ['S', 'M', 'L'],
+                    description: 'Кожаный браслет с фирменной пряжкой'
+                },
+                {
+                    id: '8',
+                    name: 'Nike x Dior',
+                    price: 15800,
+                    category: 'shoes',
+                    emoji: '👟',
+                    sizes: ['40', '41', '42', '43', '44'],
+                    description: 'Коллаборация премиум-брендов'
+                }
+            ]
+        };
+
+        let cart = [];
+        let currentCategory = 'all';
+        let currentOrderType = '';
+
+        function initShop() {
+            displayProducts(shopData.products);
+            updateCart();
+        }
+
+        function displayProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+
+            const filteredProducts = currentCategory === 'all' 
+                ? products 
+                : products.filter(p => p.category === currentCategory);
+
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = '<div class="lv-loading">Товары не найдены</div>';
+                return;
+            }
+
+            filteredProducts.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'lv-product-card';
+                
+                productCard.innerHTML = `
+                    <div class="product-image">
+                        <div class="product-emoji">${product.emoji}</div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-price">${product.price} руб.</div>
+                        <div class="size-selector">
+                            ${product.sizes.map(size => `
+                                <div class="size-option" onclick="selectSize(this, '${product.id}', '${size}')">
+                                    ${size}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="lv-button" onclick="addToCart('${product.id}')" disabled>
+                            В корзину
+                        </button>
+                        <button class="lv-button secondary" onclick="requestConsultation('${product.id}')">
+                            Консультация
+                        </button>
+                    </div>
+                `;
+                
+                grid.appendChild(productCard);
+            });
+        }
+
+        function filterByCategory(categoryId) {
+            currentCategory = categoryId;
+            
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            displayProducts(shopData.products);
+        }
+
+        function selectSize(btn, productId, size) {
+            const sizeBtns = btn.parentElement.querySelectorAll('.size-option');
+            sizeBtns.forEach(b => b.classList.remove('selected'));
+            
+            btn.classList.add('selected');
+            
+            const addToCartBtn = btn.closest('.lv-product-card').querySelector('.lv-button');
+            addToCartBtn.disabled = false;
+            addToCartBtn.setAttribute('data-product-id', productId);
+            addToCartBtn.setAttribute('data-size', size);
+        }
+
+        function addToCart(productId) {
+            const product = shopData.products.find(p => p.id === productId);
+            const size = event.target.getAttribute('data-size');
+            
+            if (product && size) {
+                const cartItem = {
+                    id: `${productId}-${size}-${Date.now()}`,
+                    productId: productId,
+                    name: product.name,
+                    size: size,
+                    price: product.price,
+                    emoji: product.emoji
+                };
+                
+                cart.push(cartItem);
+                updateCart();
+                showNotification(`✅ ${product.name} добавлен в корзину`);
+            }
+        }
+
+        function requestConsultation(productId) {
+            const product = shopData.products.find(p => p.id === productId);
+            if (product) {
+                currentOrderType = 'consultation';
+                document.getElementById('phoneInput').value = '';
+                document.getElementById('phoneModal').style.display = 'block';
+                window.consultationProduct = product;
+            }
+        }
+
+        function updateCart() {
+            const cartCount = document.getElementById('cartCount');
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+            
+            cartCount.textContent = cart.length;
+            
+            cartItems.innerHTML = '';
+            let total = 0;
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="lv-loading">Корзина пуста</div>';
+            } else {
+                cart.forEach(item => {
+                    total += item.price;
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                        <div class="cart-item-info">
+                            <h4>${item.emoji} ${item.name}</h4>
+                            <p>Размер: ${item.size}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="cart-item-price">${item.price} руб.</div>
+                            <button class="remove-item" onclick="removeFromCart('${item.id}')">✕</button>
+                        </div>
+                    `;
+                    cartItems.appendChild(cartItem);
+                });
+            }
+            
+            cartTotal.textContent = total;
+        }
+
+        function removeFromCart(itemId) {
+            cart = cart.filter(item => item.id !== itemId);
+            updateCart();
+            showNotification('Товар удален из корзины');
+        }
+
+        function toggleCart() {
+            const modal = document.getElementById('cartModal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function startCheckout() {
+            if (cart.length === 0) {
+                showNotification('Корзина пуста');
+                return;
+            }
+            
+            currentOrderType = 'order';
+            document.getElementById('phoneInput').value = '';
+            document.getElementById('phoneModal').style.display = 'block';
+            toggleCart();
+        }
+
+        function closePhoneModal() {
+            document.getElementById('phoneModal').style.display = 'none';
+        }
+
+        function completeOrder() {
+            const phoneInput = document.getElementById('phoneInput');
+            const phone = phoneInput.value.trim();
+            
+            if (!phone) {
+                showNotification('Пожалуйста, введите номер телефона');
+                return;
+            }
+
+            if (currentOrderType === 'order') {
+                const orderData = {
+                    action: 'create_order',
+                    order: {
+                        items: cart,
+                        total: cart.reduce((sum, item) => sum + item.price, 0)
+                    },
+                    phone: phone
+                };
+                
+                tg.sendData(JSON.stringify(orderData));
+                showNotification('✅ Заказ подтвержден! Менеджер свяжется с вами в течение 15 минут.');
+                
+                cart = [];
+                updateCart();
+            } else if (currentOrderType === 'consultation') {
+                const consultationData = {
+                    action: 'consultation',
+                    product_name: window.consultationProduct?.name || 'Не указан',
+                    phone: phone
+                };
+                
+                tg.sendData(JSON.stringify(consultationData));
+                showNotification('✅ Запрос на консультацию отправлен! Свяжемся с вами soon.');
+            }
+            
+            closePhoneModal();
+        }
+
+        function showNotification(message) {
+            if (tg.showPopup) {
+                tg.showPopup({
+                    title: 'LUXURY BOUTIQUE',
+                    message: message,
+                    buttons: [{ type: 'ok' }]
+                });
+            } else {
+                alert(message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initShop);
+    </script>
+</body>
+</html>

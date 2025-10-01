@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUXURY BOUTIQUE</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Ваши существующие стили остаются без изменений */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --lv-brown: #8B4513;
+            --lv-gold: #C9A96E;
+            --lv-dark: #1A1A1A;
+            --lv-light: #FFFFFF;
+            --lv-cream: #F8F6F0;
+            --lv-border: #E8E8E8;
+            --lv-text: #333333;
+            --lv-shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--lv-light);
+            color: var(--lv-text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .luxury-app {
+            max-width: 100%;
+            margin: 0 auto;
+            background: var(--lv-light);
+            min-height: 100vh;
+        }
+
+        /* Все ваши предыдущие стили остаются здесь */
+        /* ... */
+
+        /* 📱 НОВЫЕ СТИЛИ ДЛЯ АДМИН-ПАНЕЛИ */
+        
+        /* Админ-панель */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 3000;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .admin-header {
+            background: var(--lv-dark);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .admin-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .admin-tabs {
+            display: flex;
+            background: var(--lv-cream);
+            border-bottom: 1px solid var(--lv-border);
+        }
+
+        .admin-tab {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-size: 12px;
+        }
+
+        .admin-tab.active {
+            border-bottom-color: var(--lv-gold);
+            font-weight: 600;
+        }
+
+        .admin-tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        /* Область загрузки */
+        .upload-area {
+            border: 2px dashed var(--lv-gold);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: rgba(201, 169, 110, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .upload-preview img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--lv-border);
+        }
+
+        /* Настройки AI */
+        .ai-settings {
+            background: var(--lv-cream);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .setting-group {
+            margin-bottom: 15px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--lv-border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* Кнопки админки */
+        .admin-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-btn.primary {
+            background: var(--lv-gold);
+            color: black;
+        }
+
+        .admin-btn.primary:hover {
+            background: #d4b45a;
+        }
+
+        .admin-btn.danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .admin-btn.danger:hover {
+            background: #c0392b;
+        }
+
+        /* Список редактирования */
+        .products-edit-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .edit-product-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid var(--lv-border);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-product-item:hover {
+            border-color: var(--lv-gold);
+            background: var(--lv-cream);
+        }
+
+        .edit-product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-right: 15px;
+        }
+
+        .edit-product-info {
+            flex: 1;
+        }
+
+        .edit-product-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .edit-product-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .edit-product-stock {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .stock-in_stock { background: #d4f8e8; color: #27ae60; }
+        .stock-low_stock { background: #fff3cd; color: #856404; }
+        .stock-out_of_stock { background: #f8d7da; color: #721c24; }
+
+        /* Статистика */
+        .inventory-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--lv-cream);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--lv-dark);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Форма редактирования */
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--lv-border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            border-color: var(--lv-gold);
+            outline: none;
+        }
+
+        /* Поиск */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--lv-border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* FAB кнопка */
+        .admin-fab {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--lv-dark);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 2000;
+            transition: all 0.3s ease;
+        }
+
+        .admin-fab:hover {
+            transform: scale(1.1);
+            background: var(--lv-gold);
+            color: black;
+        }
+
+        /* Модальное окно редактирования */
+        .edit-modal .modal-content {
+            max-width: 500px;
+            margin: 10% auto;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid var(--lv-border);
+        }
+
+        .modal-footer .admin-btn {
+            flex: 1;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="luxury-app">
+        <!-- Ваш существующий HTML код -->
+        <header class="lv-header">
+            <div class="header-pattern"></div>
+            <div class="brand-logo">LUXURY</div>
+            <div class="brand-subtitle">Премиум реплики 1:1</div>
+        </header>
+
+        <nav class="lv-nav">
+            <div class="nav-item active">Новинки</div>
+            <div class="nav-item">Сумки</div>
+            <div class="nav-item">Одежда</div>
+            <div class="nav-item">Аксессуары</div>
+            <div class="nav-item">Обувь</div>
+        </nav>
+
+        <section class="lv-hero">
+            <div class="hero-pattern"></div>
+            <div class="hero-content">
+                <h2>Весенняя Коллекция</h2>
+                <p>Точные реплики премиум-качества с доставкой по России</p>
+            </div>
+        </section>
+
+        <div class="category-nav">
+            <div class="category-tab active" onclick="filterByCategory('all')">Все товары</div>
+            <div class="category-tab" onclick="filterByCategory('bags')">Сумки</div>
+            <div class="category-tab" onclick="filterByCategory('clothing')">Одежда</div>
+            <div class="category-tab" onclick="filterByCategory('shoes')">Обувь</div>
+            <div class="category-tab" onclick="filterByCategory('accessories')">Аксессуары</div>
+        </div>
+
+        <section class="lv-products">
+            <h2 class="section-title">Популярные товары</h2>
+            <div class="products-grid" id="productsGrid">
+                <div class="lv-loading">Загружаем коллекцию...</div>
+            </div>
+        </section>
+
+        <div class="lv-cart-fab" onclick="toggleCart()">
+            🛍️
+            <div class="cart-badge" id="cartCount">0</div>
+        </div>
+
+        <!-- Ваши существующие модальные окна -->
+        <div id="cartModal" class="lv-modal">
+            <!-- ... -->
+        </div>
+
+        <div id="phoneModal" class="lv-modal">
+            <!-- ... -->
+        </div>
+
+        <!-- 📱 НОВАЯ АДМИН-ПАНЕЛЬ (добавьте этот код) -->
+        
+        <!-- Админ-панель -->
+        <div id="adminPanel" class="admin-panel">
+            <div class="admin-header">
+                <h3>⚙️ Панель управления</h3>
+                <button onclick="toggleAdminPanel()" class="admin-close">✕</button>
+            </div>
+            
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="openAdminTab('uploadTab')">📤 Загрузка</button>
+                <button class="admin-tab" onclick="openAdminTab('editTab')">✏️ Редактирование</button>
+                <button class="admin-tab" onclick="openAdminTab('inventoryTab')">📊 Наличие</button>
+            </div>
+            
+            <!-- Вкладка загрузки -->
+            <div id="uploadTab" class="admin-tab-content active">
+                <div class="upload-area" onclick="document.getElementById('batchUpload').click()">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Нажмите чтобы загрузить фото</div>
+                    <div class="upload-subtext">Можно выбрать несколько фото сразу</div>
+                </div>
+                
+                <input type="file" id="batchUpload" multiple accept="image/*" style="display: none;" onchange="handleBatchUpload(event)">
+                
+                <div id="uploadPreview" class="upload-preview"></div>
+                
+                <div class="ai-settings">
+                    <div class="setting-group">
+                        <label>Цена по умолчанию:</label>
+                        <input type="number" id="defaultPrice" value="8900" class="setting-input">
+                    </div>
+                    <div class="setting-group">
+                        <label>AI определение:</label>
+                        <select id="aiMode" class="setting-input">
+                            <option value="auto">Автоматически</option>
+                            <option value="suggest">Только подсказки</option>
+                            <option value="manual">Ручной режим</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button onclick="processBatchUpload()" class="admin-btn primary">🤖 Обработать и добавить</button>
+            </div>
+            
+            <!-- Вкладка редактирования -->
+            <div id="editTab" class="admin-tab-content">
+                <div class="search-box">
+                    <input type="text" id="productSearch" placeholder="🔍 Поиск товара..." class="search-input" onkeyup="filterEditProducts()">
+                </div>
+                
+                <div id="editProductsList" class="products-edit-list">
+                    <!-- Список товаров для редактирования -->
+                </div>
+            </div>
+            
+            <!-- Вкладка наличия -->
+            <div id="inventoryTab" class="admin-tab-content">
+                <div class="inventory-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalProducts">0</div>
+                        <div class="stat-label">Всего товаров</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="outOfStock">0</div>
+                        <div class="stat-label">Нет в наличии</div>
+                    </div>
+                </div>
+                
+                <div id="inventoryList" class="inventory-list">
+                    <!-- Список наличия -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования товара -->
+        <div id="editModal" class="lv-modal edit-modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>✏️ Редактирование товара</h3>
+                    <span class="close" onclick="closeEditModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="edit-form">
+                        <div class="form-group">
+                            <label>Название:</label>
+                            <input type="text" id="editName" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Категория:</label>
+                            <select id="editCategory" class="form-input">
+                                <option value="bags">Сумки</option>
+                                <option value="clothing">Одежда</option>
+                                <option value="shoes">Обувь</option>
+                                <option value="accessories">Аксессуары</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Цена (руб):</label>
+                            <input type="number" id="editPrice" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Описание:</label>
+                            <textarea id="editDescription" class="form-input" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Размеры (через запятую):</label>
+                            <input type="text" id="editSizes" class="form-input" placeholder="S, M, L, XL">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Наличие:</label>
+                            <select id="editStock" class="form-input">
+                                <option value="in_stock">В наличии</option>
+                                <option value="low_stock">Мало</option>
+                                <option value="out_of_stock">Нет в наличии</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Количество:</label>
+                            <input type="number" id="editQuantity" class="form-input" value="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="saveProductChanges()" class="admin-btn primary">💾 Сохранить</button>
+                    <button onclick="deleteProduct()" class="admin-btn danger">🗑️ Удалить</button>
+                    <button onclick="closeEditModal()" class="admin-btn">❌ Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка открытия админки -->
+        <div class="admin-fab" onclick="toggleAdminPanel()">
+            ⚙️
+        </div>
+    </div>
+
+    <script>
+        // Ваш существующий JavaScript код
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Данные магазина
+        const shopData = {
+            categories: [
+                {id: 'all', name: 'Все товары'},
+                {id: 'bags', name: 'Сумки'},
+                {id: 'clothing', name: 'Одежда'},
+                {id: 'shoes', name: 'Обувь'},
+                {id: 'accessories', name: 'Аксессуары'}
+            ],
+            products: [
+                {
+                    id: '1',
+                    name: 'Louis Vuitton Neverfull',
+                    price: 14900,
+                    category: 'bags',
+                    emoji: '👜',
+                    sizes: ['PM', 'MM', 'GM'],
+                    description: 'Культовая сумка, точная реплика 1:1'
+                },
+                // ... остальные товары
+            ]
+        };
+
+        // Ваши существующие переменные и функции
+        let cart = [];
+        let currentCategory = 'all';
+        let currentOrderType = '';
+
+        // 📱 НОВЫЙ КОД ДЛЯ АДМИН-ПАНЕЛИ
+
+        let currentEditingProduct = null;
+        let uploadedBatchImages = [];
+
+        // Переключение админ-панели
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            
+            if (panel.style.display === 'block') {
+                loadEditProductsList();
+                loadInventoryStats();
+            }
+        }
+
+        // Переключение вкладок
+        function openAdminTab(tabName) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.admin-tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Убрать активные классы с кнопок
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показать выбранную вкладку
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Обработка загрузки фото
+        function handleBatchUpload(event) {
+            const files = event.target.files;
+            const preview = document.getElementById('uploadPreview');
+            preview.innerHTML = '';
+            
+            uploadedBatchImages = [];
+            
+            for (let file of files) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = file.name;
+                    preview.appendChild(img);
+                    
+                    uploadedBatchImages.push({
+                        file: file,
+                        url: e.target.result,
+                        name: file.name
+                    });
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // AI для определения категорий
+        function advancedAIDetection(filename) {
+            const name = filename.toLowerCase();
+            
+            const patterns = {
+                'bags': [/bag/, /sumka/, /ryukzak/, /clutch/, /tote/, /backpack/],
+                'shoes': [/shoe/, /sneaker/, /boot/, /tufli/, /kross/, /obuv/],
+                'clothing': [/shirt/, /futbolka/, /blazer/, /hoodie/, /jacket/, /kurtka/, /pants/, /jeans/],
+                'accessories': [/watch/, /clock/, /bracelet/, /chain/, /ring/, /braslet/, /necklace/]
+            };
+            
+            for (const [category, regexes] of Object.entries(patterns)) {
+                if (regexes.some(regex => regex.test(name))) {
+                    return category;
+                }
+            }
+            
+            return 'bags';
+        }
+
+        // Генерация названия товара
+        function generateProductName(filename, category) {
+            const brands = ['Louis Vuitton', 'Gucci', 'Prada', 'Dior', 'Balenciaga', 'Chanel', 'Hermès', 'Fendi'];
+            const items = {
+                'bags': ['Сумка', 'Рюкзак', 'Клатч', 'Портфель', 'Тот-бэг'],
+                'shoes': ['Кроссовки', 'Туфли', 'Ботинки', 'Сандали', 'Лоферы'],
+                'clothing': ['Футболка', 'Худи', 'Блейзер', 'Куртка', 'Джинсы', 'Платье'],
+                'accessories': ['Часы', 'Браслет', 'Ожерелье', 'Кольцо', 'Цепочка']
+            };
+            
+            const brand = brands[Math.floor(Math.random() * brands.length)];
+            const item = items[category][Math.floor(Math.random() * items[category].length)];
+            
+            return `${brand} ${item}`;
+        }
+
+        // Получение размеров по умолчанию
+        function getDefaultSizes(category) {
+            const sizes = {
+                'bags': ['PM', 'MM', 'GM'],
+                'shoes': ['39', '40', '41', '42', '43', '44'],
+                'clothing': ['S', 'M', 'L', 'XL'],
+                'accessories': ['ONE SIZE']
+            };
+            return sizes[category] || ['ONE SIZE'];
+        }
+
+        // Обработка пакетной загрузки
+        function processBatchUpload() {
+            if (uploadedBatchImages.length === 0) {
+                showNotification('❌ Сначала загрузите фото');
+                return;
+            }
+
+            const defaultPrice = parseInt(document.getElementById('defaultPrice').value) || 8900;
+            const aiMode = document.getElementById('aiMode').value;
+            
+            uploadedBatchImages.forEach((image, index) => {
+                const detectedCategory = advancedAIDetection(image.name);
+                const productName = generateProductName(image.name, detectedCategory);
+                
+                const newProduct = {
+                    id: 'user_' + Date.now() + '_' + index,
+                    name: productName,
+                    price: defaultPrice,
+                    category: detectedCategory,
+                    image: image.url,
+                    sizes: getDefaultSizes(detectedCategory),
+                    description: 'Премиум качество 1:1',
+                    stock: 'in_stock',
+                    quantity: 1
+                };
+                
+                addProductToShop(newProduct);
+            });
+            
+            showNotification(`✅ Добавлено ${uploadedBatchImages.length} товаров!`);
+            uploadedBatchImages = [];
+            document.getElementById('uploadPreview').innerHTML = '';
+        }
+
+        // Добавление товара в магазин
+        function addProductToShop(product) {
+            if (!window.shopData) window.shopData = { products: [] };
+            window.shopData.products.push(product);
+            
+            // Сохраняем в localStorage
+            saveProductsToStorage();
+            
+            // Обновляем отображение
+            if (currentCategory === 'all' || currentCategory === product.category) {
+                displayProducts(window.shopData.products);
+            }
+            
+            // Обновляем админ-панель
+            loadEditProductsList();
+            loadInventoryStats();
+        }
+
+        // Загрузка списка для редактирования
+        function loadEditProductsList() {
+            const container = document.getElementById('editProductsList');
+            container.innerHTML = '';
+            
+            if (!window.shopData || !window.shopData.products) return;
+            
+            window.shopData.products.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.className = 'edit-product-item';
+                productItem.onclick = () => openEditModal(product);
+                
+                const imageContent = product.image 
+                    ? `<img src="${product.image}" class="edit-product-image" alt="${product.name}">`
+                    : `<div class="edit-product-image" style="background: var(--lv-cream); display: flex; align-items: center; justify-content: center; font-size: 20px;">🛍️</div>`;
+                
+                productItem.innerHTML = `
+                    ${imageContent}
+                    <div class="edit-product-info">
+                        <div class="edit-product-name">${product.name}</div>
+                        <div class="edit-product-details">
+                            ${product.price} руб. • ${getCategoryName(product.category)} • ${Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes}
+                        </div>
+                    </div>
+                    <div class="edit-product-stock stock-${product.stock || 'in_stock'}">
+                        ${getStockText(product.stock || 'in_stock')}
+                    </div>
+                `;
+                
+                container.appendChild(productItem);
+            });
+        }
+
+        // Фильтрация товаров в админке
+        function filterEditProducts() {
+            const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.edit-product-item');
+            
+            items.forEach(item => {
+                const productName = item.querySelector('.edit-product-name').textContent.toLowerCase();
+                if (productName.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Открытие модального окна редактирования
+        function openEditModal(product) {
+            currentEditingProduct = product;
+            
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editCategory').value = product.category;
+            document.getElementById('editPrice').value = product.price;
+            document.getElementById('editDescription').value = product.description || '';
+            document.getElementById('editSizes').value = Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes;
+            document.getElementById('editStock').value = product.stock || 'in_stock';
+            document.getElementById('editQuantity').value = product.quantity || 1;
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // Закрытие модального окна
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditingProduct = null;
+        }
+
+        // Сохранение изменений
+        function saveProductChanges() {
+            if (!currentEditingProduct) return;
+            
+            // Обновляем данные товара
+            currentEditingProduct.name = document.getElementById('editName').value;
+            currentEditingProduct.category = document.getElementById('editCategory').value;
+            currentEditingProduct.price = parseInt(document.getElementById('editPrice').value);
+            currentEditingProduct.description = document.getElementById('editDescription').value;
+            currentEditingProduct.sizes = document.getElementById('editSizes').value.split(',').map(s => s.trim());
+            currentEditingProduct.stock = document.getElementById('editStock').value;
+            currentEditingProduct.quantity = parseInt(document.getElementById('editQuantity').value);
+            
+            // Сохраняем в localStorage
+            saveProductsToStorage();
+            
+            // Обновляем отображение
+            displayProducts(window.shopData.products);
+            loadEditProductsList();
+            loadInventoryStats();
+            
+            closeEditModal();
+            showNotification('✅ Товар успешно обновлен!');
+        }
+
+        // Удаление товара
+        function deleteProduct() {
+            if (!currentEditingProduct) return;
+            
+            if (confirm('Вы уверены, что хотите удалить этот товар?')) {
+                window.shopData.products = window.shopData.products.filter(p => p.id !== currentEditingProduct.id);
+                
+                saveProductsToStorage();
+                displayProducts(window.shopData.products);
+                loadEditProductsList();
+                loadInventoryStats();
+                
+                closeEditModal();
+                showNotification('🗑️ Товар удален');
+            }
+        }
+
+        // Загрузка статистики
+        function loadInventoryStats() {
+            if (!window.shopData || !window.shopData.products) return;
+            
+            const total = window.shopData.products.length;
+            const outOfStock = window.shopData.products.filter(p => p.stock === 'out_of_stock').length;
+            
+            document.getElementById('totalProducts').textContent = total;
+            document.getElementById('outOfStock').textContent = outOfStock;
+        }
+
+        // Вспомогательные функции
+        function getCategoryName(category) {
+            const names = {
+                'bags': 'Сумки',
+                'clothing': 'Одежда', 
+                'shoes': 'Обувь',
+                'accessories': 'Аксессуары'
+            };
+            return names[category] || category;
+        }
+
+        function getStockText(stock) {
+            const texts = {
+                'in_stock': 'В наличии',
+                'low_stock': 'Мало',
+                'out_of_stock': 'Нет в наличии'
+            };
+            return texts[stock] || stock;
+        }
+
+        // Сохранение в LocalStorage
+        function saveProductsToStorage() {
+            if (window.shopData && window.shopData.products) {
+                // Сохраняем только пользовательские товары
+                const userProducts = window.shopData.products.filter(p => p.id.startsWith('user_'));
+                localStorage.setItem('userProducts', JSON.stringify(userProducts));
+            }
+        }
+
+        // Загрузка из LocalStorage
+        function loadProductsFromStorage() {
+            const saved = localStorage.getItem('userProducts');
+            if (saved) {
+                const userProducts = JSON.parse(saved);
+                if (window.shopData) {
+                    // Объединяем с существующими товарами
+                    window.shopData.products = [...window.shopData.products, ...userProducts];
+                }
+            }
+        }
+
+        // 📱 ОБНОВЛЕННАЯ ФУНКЦИЯ INITSHOP
+        async function initShop() {
+            // Загружаем стандартные товары
+            if (window.shopData && window.shopData.products) {
+                displayProducts(window.shopData.products);
+            }
+            
+            // Загружаем пользовательские товары из localStorage
+            loadProductsFromStorage();
+            
+            updateCart();
+        }
+
+        // Ваши существующие функции остаются здесь
+        function displayProducts(products) {
+            // ... ваш существующий код
+        }
+
+        function filterByCategory(categoryId) {
+            // ... ваш существующий код
+        }
+
+        function showNotification(message) {
+            // ... ваш существующий код
+        }
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            initShop();
+            
+            // Загружаем пользовательские товары при старте
+            loadProductsFromStorage();
+        });
+    </script>
+</body>
+</html>
